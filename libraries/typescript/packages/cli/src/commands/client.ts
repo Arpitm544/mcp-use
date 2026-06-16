@@ -382,7 +382,7 @@ async function listClientsCommand(): Promise<void> {
           )
         );
       }
-      return;
+      await cleanupAndExit(0);
     }
 
     const tty = isStdoutTty();
