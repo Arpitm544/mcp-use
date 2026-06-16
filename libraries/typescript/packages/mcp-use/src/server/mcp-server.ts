@@ -866,8 +866,15 @@ class MCPServerClass<HasOAuth extends boolean = false> {
           console.log(
             `[MCP-Server] Propagated resource ${resourceUri} to session ${sessionId}`
           );
-        } catch (_e) {
-          // Resource may already be registered by addWidgetTool
+        } catch (e) {
+          // Skip if already registered, but surface anything else so HMR failures don't go unnoticed.
+          const msg = e instanceof Error ? e.message : String(e);
+          if (!msg.toLowerCase().includes("already registered")) {
+            console.warn(
+              `[MCP-Server] Unexpected error propagating resource ${resourceUri} to session ${sessionId}:`,
+              e
+            );
+          }
         }
       }
 
@@ -907,8 +914,15 @@ class MCPServerClass<HasOAuth extends boolean = false> {
           console.log(
             `[MCP-Server] Propagated resource template ${resourceTemplateUri} to session ${sessionId}`
           );
-        } catch (_e) {
-          // Resource template may already be registered by addWidgetTool
+        } catch (e) {
+          // Skip if already registered, but surface anything else so HMR failures don't go unnoticed.
+          const msg = e instanceof Error ? e.message : String(e);
+          if (!msg.toLowerCase().includes("already registered")) {
+            console.warn(
+              `[MCP-Server] Unexpected error propagating resource template ${resourceTemplateUri} to session ${sessionId}:`,
+              e
+            );
+          }
         }
       }
 
@@ -916,8 +930,12 @@ class MCPServerClass<HasOAuth extends boolean = false> {
       if (session.server?.sendResourceListChanged) {
         try {
           session.server.sendResourceListChanged();
-        } catch (_e) {
-          // Session may be disconnected
+        } catch (e) {
+          // Session might have disconnected between the check and the send.
+          console.debug(
+            `[MCP-Server] Failed to send resource list changed to session ${sessionId} (may be disconnected):`,
+            e instanceof Error ? e.message : String(e)
+          );
         }
       }
     }
